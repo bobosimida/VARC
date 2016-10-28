@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTDMapper3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.varc.mapper.WorkAndMessageMapper">
+	<!-- 添加邮件 -->
+ 	<insert id="addEmail" parameterType="email">
+ 		insert into email(send_time,isread,content,send_id,get_id,title)values(#{sendTime},#{isread},#{content},#{sendId},#{getId},#{title})
+ 	</insert>
+ 	
+ 	<!-- 获取用户的未读邮件数量，通过用户id -->
+ 	<select id="getEmailNoreadCountByUserId" parameterType="int" resultType="int">
+ 		select count(id) from email where get_id=#{id} and isread=0
+ 	</select>
+ 	<!-- 获取用户未读的邮件，通过getId -->
+ 	<select id="getEmailNoReadListByGetId" parameterType="emailPage" resultMap="EmailResultMap">
+ 		select user.account,user.name,email.id,email.send_time ,email.isread,email.title
+ 			from user,email where get_id=#{id} and get_id=user.id and email.isread=0 limit #{begin},8
+ 	</select>
+ 	<!-- 获取所有邮件的数量 -->
+ 	<select id="getAllEmailCount" parameterType="int" resultType="java.lang.Integer">
+ 		select count(id) from email where get_id=#{id}
+ 	</select>
+ 	<!-- 获取用户所有的邮件，通过getId -->
+ 	<select id="getEmailListByGetId" parameterType="emailPage" resultMap="EmailResultMap">
+ 		select user.account,user.name,email.id,email.send_time ,email.isread,email.title
+ 			from user,email where get_id=#{id} and send_id=user.id  limit #{begin},8
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.EmailExtension" id="EmailResultMap">
+ 		<id column="id" property="email.id"/> 
+ 		<result column="account" property="user.account"/>
+ 		<result column="name" property="user.name"/>
+ 		<result column="send_time" property="email.sendTime"/>
+ 		<result column="isread" property="email.isread"/>
+ 		<result column="title" property="email.title"/>
+ 	</resultMap>
+ 	<!-- 获取邮件内容 -->
+ 	<select id="findEmailContentById" parameterType="int" resultMap="emailContent">
+ 		select content,isread from email where id=#{id}
+ 	</select>
+ 	<resultMap type="email" id="emailContent">
+ 		<id column="id" property="id"/> 
+ 		<result column="content" property="content" jdbcType="BLOB"/>
+ 		<result column="isread" property="isread"/>
+ 	</resultMap>
+ 	
+ 	<!-- 删除一封邮件 -->
+ 	<delete id="deleteAEmail" parameterType="int">
+ 		delete from email where id=#{id}
+ 	</delete>
+ 	<!-- 将未读改为已读 -->
+ 	<update id="updateIsRead" parameterType="int">
+ 		update email set isread=1 where id=#{id}
+ 	</update>
+ 	<!-- 查找通讯录联系人id -->
+ 	<select id="findTongxunluBySelfId" parameterType="tongxunluPage" resultType="java.lang.Integer">
+ 		select other_id from tongxunlu where self_id=#{id} limit #{begin},7
+ 	</select>
+ 	
+ 	<select id="findAllTongxunluBySelfId" parameterType="int" resultType="java.lang.Integer">
+ 		select other_id from tongxunlu where self_id=#{id}
+ 	</select>
+ 	
+ 	 	<select id="findUserEntensionById" parameterType="int" resultMap="findUserByAccountResultMap">
+ 		select user.id, user.account,  user.name, user.unit, user.tel, user.email, user.sex, user.age, villageinfo_id villageinfoId,  villageinfo.`NAME` villageName from 
+user,  villageinfo where  user.villageinfo_id = villageinfo.id and user.id =#{id} 
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.UserExtension" id="findUserByAccountResultMap">
+ 		<id column="id" property="user.id"/>
+ 		<result column="account" property="user.account"/>
+ 		<result column="name" property="user.name"/>
+ 		<result column="unit" property="user.unit"/>
+ 		<result column="tel" property="user.tel"/>
+ 		<result column="email" property="user.email"/>
+ 		<result column="sex" property="user.sex"/>
+ 		<result column="age" property="user.age"/>
+ 		<result column="villageinfoId" property="user.villageinfoId"/>
+ 		<result column="villageName" property="villageName"/>
+ 	</resultMap>
+ 	<!--查询联系人总数量  -->
+ 	<select id="findTongxunluCountBySelfId" parameterType="int" resultType="java.lang.Integer">
+ 		select count(id) from tongxunlu where self_id=#{id}
+ 	</select>
+ 	
+ 	<!-- 删除联系人 -->
+ 	<delete id="deleteTongxunlu" parameterType="int">
+ 		delete from tongxunlu where other_id=#{id}
+ 	</delete>
+ 	<!-- 添加联系人 -->
+ 	<insert id="addTongxunlu" parameterType="tongXunLu">
+ 		insert into tongxunlu(self_id,other_id)values(#{selfId},#{otherId})
+ 	</insert>
+ 	
+ 	
+ 	
+ 	
+</mapper>

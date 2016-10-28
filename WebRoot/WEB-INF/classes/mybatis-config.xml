@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTDConfig3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<!-- 别名定义，可以批量 -->
+<typeAliases>
+	
+	<!--  批量定义该包下的vo类，别名就是类名，首字母大小写都可以 -->
+	<package name="com.varc.domain"/>
+	<package name="com.varc.domain.extension"/> 
+</typeAliases>
+	<!-- 配置mapper,加载mapper -->
+	<mappers>
+		<package name="com.varc.mapper"/>
+	</mappers>
+</configuration>	

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"  
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:mvc="http://www.springframework.org/schema/mvc"  
+    xsi:schemaLocation="   
+           http://www.springframework.org/schema/beans   
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+           http://www.springframework.org/schema/context   
+           http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+           http://www.springframework.org/schema/mvc   
+           http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+		<!-- 配置渲染器 -->
+		<!-- <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/> -->
+		<!-- 	配置视图的前缀 ,配置的目录是web-root下的jsp目录 -->
+			<!-- <property name="prefix" value="/jsp/"/> -->
+		<!-- 	配置后缀 -->
+			<!-- <property name="suffix" value=".jsp"/>
+		</bean>  -->
+		
+		
+		
+		<!-- 防止过滤  css,js,imgs -->
+   		<!-- <mvc:default-servlet-handler/> -->
+   		
+   		
+   		<mvc:interceptors>
+	<!-- 	使用bean定义一个Interceptor，直接定义在mvc:interceptors根下面的Interceptor将拦截所有的请求 -->
+	<!-- 	<bean class="com.dcb.interceptors.InterceptorsTest" /> -->
+		 <mvc:interceptor>
+		 	<!-- 基本信息管理层 -->
+			<mvc:mapping path="/forward/*" />
+			<mvc:mapping path="/basicInfoControl/*" />
+			
+			<!-- 民主选举层 -->
+			<mvc:mapping path="/forwardEle/*" />
+			<mvc:mapping path="/democraticElectionControl/*" />
+			
+			<!-- 工作与信息交流控制层 -->
+			<mvc:mapping path="/forwardWAM/*"/>
+			<mvc:mapping path="/workAndMessageControl/*"/>
+			
+			<!-- 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 -->
+			<bean class="com.varc.interceptor.SessionInterceptors" />
+		</mvc:interceptor> 
+		<mvc:interceptor>
+			<mvc:mapping path="/userControl/*" />
+			<!-- 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 -->
+			<bean class="com.varc.interceptor.UserInterceptor" />
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/democraticElectionControl/add_minzhuxuanju" />
+			<!-- 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 -->
+			<bean class="com.varc.interceptor.CreatMinZhuXuanJuInterceptor" />
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/basicInfoControl/add_user" />
+			<mvc:mapping path="/basicInfoControl/find_zhiwei_isUse" />
+			<!-- 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 -->
+			<bean class="com.varc.interceptor.AddUserInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors>  
+	<!-- 配置下载解析器 -->
+		<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+				<property name="defaultEncoding" value="utf-8"/>
+				<property name="maxUploadSize" value="1000000000"/>
+				<property name="maxInMemorySize" value="40000"/>
+		</bean>
+	<!-- 扫描该包下 spring mvc的注解 -->
+	<context:component-scan base-package="com.varc.control"/>
+	<context:component-scan base-package="com.varc.forward"/>
+</beans>

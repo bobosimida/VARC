@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTDMapper3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.varc.mapper.BasicInfoMapper">
+<resultMap type="user" id="userByAccountAndPwdResultMap">
+ 		<id column="id" property="id"/>
+ 		<result column="account" property="account"/>
+ 		<result column="pwd" property="pwd"/>
+ 		<result column="name" property="name"/>
+ 		<result column="unit" property="unit"/>
+ 		<result column="tel" property="tel"/>
+ 		<result column="email" property="email"/>
+ 		<result column="sex" property="sex"/>
+ 		<result column="age" property="age"/>
+ 		<result column="roll_id" property="rollId"/>
+ 		<result column="villageinfo_id" property="villageinfoId"/>
+ 	</resultMap>
+ 	
+ 	<!-- 1修改登入用户的密码,根据用户名更新 新密码（把用户名和新密码封装成一个user对象）-->
+ 	<update id="updateUserPwd" parameterType="user">
+ 		update user set pwd=#{pwd} where account=#{account}
+ 	</update>
+ 	
+ 	<!--  2更新用户信息-->
+ 	<update id="updateUserInfo" parameterType="user">
+ 		update user set  name=#{name}, unit=#{unit}, tel=#{tel}, email=#{email}, sex=#{sex}, age=#{age} where id=#{id}
+ 	</update>
+ 	
+ 	<!-- 3. 更新村子信息，根据所在该村的村委会成员账号查找到所在的村落id,通过村落id更新存子信息 -->
+ 	
+ 	<update id="updateVillageInfoByAccount" parameterType="com.varc.domain.extension.AccountToVillageInfo">
+		update villageinfo set NAME=#{villageInfo.name}, sheng=#{villageInfo.sheng}, shi=#{villageInfo.shi}, qu=#{villageInfo.qu}, xiang=#{villageInfo.xiang},
+dibao=#{villageInfo.dibao},  wubao=#{villageInfo.wubao}, canji=#{villageInfo.canji},
+ shengchanzongzhi=#{villageInfo.shengchanzongzhi}, renjunshouru=#{villageInfo.renjunshouru}, nongyechanzhi=#{villageInfo.nongyechanzhi}, 
+cunshouru=#{villageInfo.cunshouru}, cunzhaiwu=#{villageInfo.cunzhaiwu}, zirancun=#{villageInfo.zirancun}, xiaqumianji=#{villageInfo.xiaqumianji}, gendimianji=#{villageInfo.gendimianji}, tongshui=#{villageInfo.tongshui}, 
+yinshuikunnan=#{villageInfo.yinshuikunnan}, tongdian=#{villageInfo.tongdian}, tongwangluo=#{villageInfo.tongwangluo}, tongyouxian=#{villageInfo.tongyouxian}, cunxiaoxue=#{villageInfo.cunxiaoxue}, cunzhongxue=#{villageInfo.cunzhongxue},
+ renkouzongshu=#{villageInfo.renkouzongshu}, changzhurenkoushu=#{villageInfo.changzhurenkoushu}, hujirenkoushu=#{villageInfo.hujirenkoushu}, nongyerenkoushu=#{villageInfo.nongyerenkoushu}
+where id = (select villageinfo_id from user where account = #{account})
+ 	</update>
+ 	
+ 	
+ 	
+ 	<!-- 4.更新用户角色，根据用户账号根据用户角色 -->
+ 	<update id="updateRollById" parameterType="user">
+ 		update user set roll_id=#{rollId} where id=#{id}
+ 	</update>
+ 	
+ 	
+ 	<!-- 6.查看个人信息,通过个人账户 -->
+ 	<select id="findUserByAccount" parameterType="java.lang.String" resultMap="findUserByAccountResultMap">
+ 		select user.id, user.account, user.pwd, user.name, user.unit, user.tel, user.email, user.sex, user.age,user.roll_id rollId, villageinfo_id villageinfoId, roll.roll rollName, villageinfo.`NAME` villageName from 
+user, roll, villageinfo where user.roll_id = roll.id and user.villageinfo_id = villageinfo.id and user.account =#{account}
+ 	</select>
+ 	<!-- 查看某村的所有用户 -->
+ 	<select id="findAllUserByVillageInfoId" parameterType="page" resultMap="findUserByAccountResultMap">
+ 		select user.id, user.account, user.pwd, user.name, user.unit, user.tel, user.email, user.sex, user.age,user.roll_id rollId, villageinfo_id villageinfoId, roll.roll rollName, villageinfo.`NAME` villageName from 
+user, roll, villageinfo where user.roll_id = roll.id and user.villageinfo_id = villageinfo.id and user.villageinfo_id =#{id} order by roll_id desc limit #{begin},8 
+ 	</select>
+ 	<!-- 查看某村的所有用户 数量-->
+ 	<select id="findUserCountByVillageInfoId" parameterType="int" resultType="java.lang.Integer">
+ 		select count(id) from user where villageinfo_id=#{id}
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.UserExtension" id="findUserByAccountResultMap">
+ 		<id column="id" property="user.id"/>
+ 		<result column="account" property="user.account"/>
+ 		<result column="pwd" property="user.pwd"/>
+ 		<result column="name" property="user.name"/>
+ 		<result column="unit" property="user.unit"/>
+ 		<result column="tel" property="user.tel"/>
+ 		<result column="email" property="user.email"/>
+ 		<result column="sex" property="user.sex"/>
+ 		<result column="age" property="user.age"/>
+ 		<result column="rollId" property="user.rollId"/>
+ 		<result column="villageinfoId" property="user.villageinfoId"/>
+ 		<result column="rollName" property="rollName"/>
+ 		<result column="villageName" property="villageName"/>
+ 	</resultMap>
+ 	
+ 	<!--  7.查看用户所在村庄的基本信息 -->
+ 	<select id="findVillageInfoByUserAccount" parameterType="java.lang.String" resultType="com.varc.domain.VillageInfo">
+ 		select villageinfo.*  from villageinfo, user
+where user.villageinfo_id = villageinfo.id and user.account = #{account}
+ 	</select>
+ 	<!--  根据村庄id查找村庄的基本信息 -->
+ 	<select id="findVillageinfoById" parameterType="int" resultType="com.varc.domain.VillageInfo">
+ 		select villageinfo.*  from villageinfo
+		where id =#{id}
+ 	</select>
+ 	<!-- 8.增加用户 -->
+ 	<insert id="addUser" parameterType="user">
+ 		insert into user(account, pwd,name,age, sex,roll_id,villageinfo_id) VALUES(#{account},#{pwd},#{name},#{age},#{sex}, #{rollId},#{villageinfoId})
+ 	</insert>
+ 	
+ 	<!-- 9.删除用户 -->
+ 	
+ 	<delete id="deleteUserByAccount" parameterType="java.lang.String">
+ 		call deleteUser(#{account})
+ 	</delete>
+ 	
+ 	<!-- 10. 通过id查找用户信息 -->
+ 	<select id="findUserByUserId" parameterType="int" resultType="com.varc.domain.User">
+ 		select *, roll_id rollId,villageinfo_id villageinfoId from user where id = #{id}
+ 	</select>
+ 	
+ 	
+ 	<!-- 11. 根据村庄id查询村委会信息，包括村委会对应人员的职位。 -->
+ 	<select id="findCunWeiHuiByVillageinfoId" parameterType="java.lang.String" resultMap="findCunWeiHuiByUserAccountResultMap">
+ 		select c.id, c.jieshu, c.zhiwei_id zhiweiId, c.starttime, c.overtime, c.user_id userId, c.villageinfo_id villageinfoId, 
+c.minzhuxuanju_id minzhuxuanjuId, cz.zhiwei,user.name name from cunweihui c, cunweihui_zhiwei cz ,user
+where c.zhiwei_id = cz.id and c.jieshu=(select MAX(jieshu) from cunweihui) and c.user_id=user.id
+and c.villageinfo_id = #{id} order by zhiwei_id asc
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.CunWeiHuiExtension" id="findCunWeiHuiByUserAccountResultMap">
+ 		<id column="id" property="cunWeiHui.id"/>
+ 		<result column="jieshu" property="cunWeiHui.jieshu"/>
+ 		<result column="zhiweiId" property="cunWeiHui.zhiweiId"/>
+ 		<result column="starttime" property="cunWeiHui.starttime"/>
+ 		<result column="overtime" property="cunWeiHui.overtime"/>
+ 		<result column="userId" property="cunWeiHui.userId"/>
+ 		<result column="villageinfoId" property="cunWeiHui.villageinfoId"/>
+ 		<result column="minzhuxuanjuId" property="cunWeiHui.minzhuxuanjuId"/>
+ 		<result column="zhiwei" property="zhiwei"/>
+ 		<result column="name" property="name"/>
+ 	</resultMap> 
+ 	<!-- 通过userid 查询该人在村委会的信息 -->
+ 	<select id="findCunWeiHuiMember" parameterType="int" resultType="com.varc.domain.CunWeiHui">
+ 		select *,minzhuxuanju_id minzhuxuanjuId from cunweihui where user_id=#{id} and jieshu=(select Max(jieshu) from cunweihui)
+ 	</select>
+ 	<!-- 通过村委会成员id成员查出该成员选举信息 -->
+ 	<select id="findMinZhuXuanJuByMinZhuXuanJuId" parameterType="int" resultType="com.varc.domain.MinZhuXuanJu">
+ 		select * from minzhuxuanju where id=#{id}
+ 	</select>
+ 	<!-- 查找所有的村庄id -->
+ 	
+ 	<select id="findAllVillageinfoId" resultType="java.lang.Integer">
+ 		select id from villageinfo
+ 	</select>
+ 	
+ 	<!-- 通过帐号查找密码 -->
+ 	<select id="findPwdByAccount" parameterType="java.lang.String" resultType="java.lang.String">
+ 		select pwd from user where account=#{account}
+ 	</select>
+ 	
+ 	<!-- 添加村庄 -->
+ 	<insert id="addVillageInfo" parameterType="villageInfo">
+ 		insert into villageinfo(name,sheng,shi,qu,xiang)values(#{name},#{sheng},#{shi},#{qu},#{xiang})
+ 	</insert>
+ 	<!-- 添加村委会成员 -->
+ 	<insert id="addCunWeiHuiMember" parameterType="cunWeiHui">
+ 		insert into cunweihui(jieshu,zhiwei_id,starttime,user_id,villageinfo_id)
+ 		values(#{jieshu},#{zhiweiId},#{starttime},#{userId},#{villageinfoId})
+ 	</insert>
+ 	<!-- 查找用户id通过用户帐号 -->
+ 	<select id="findUserIdByUserAccount" parameterType="java.lang.String" resultType="java.lang.Integer">
+ 		select id from user where account=#{account}
+ 	</select>
+ 	<!-- 查看村委会当前届数 -->
+ 	<select id="findCunWeiHuiJieShuByVillinfoId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+ 		select Max(jieshu) from cunweihui where villageinfo_id=#{id}
+ 	</select>
+ 	<!-- 查看某职位是否被占用 -->
+ 	<select id="zhiWeiIsUse" parameterType="cunWeiHui" resultType="java.lang.Integer">
+ 		select user_id from cunweihui where zhiwei_id=#{zhiweiId} and 
+ 								 jieshu=(select Max(jieshu) from cunweihui where villageinfo_id=#{villageinfoId})
+ 	</select>
+ 	<!-- 删除村委会成员在村委会的信息 -->
+ 	<select id="deleteCunWeiHuiMember1" parameterType="cunWeiHui">
+ 		delete from cunweihui where jieshu=#{jieshu} and zhiwei_id=#{zhiweiId} and villageinfo_id=#{villageinfoId}
+ 	</select>
+ 	<select id="deleteCunWeiHuiMember2" parameterType="cunWeiHui">
+ 		delete from cunweihui where jieshu=#{jieshu}  and villageinfo_id=#{villageinfoId}
+ 	</select>
+ 	<!-- 更新用户角色权限 -->
+ 	<update id="updateUserRollByAccount" parameterType="user" >
+ 		update user set roll_id=#{rollId} where account=#{account}
+ 	</update>
+ 	
+ 	<select id="findRollById" parameterType="int" resultType="Integer">
+ 		select roll_id from user where id=#{id}
+ 	</select>
+ 	
+ 	<select id="findVillageMaxId" resultType="java.lang.Integer">
+ 		select max(id) from villageinfo
+ 	</select>
+ 	
+ 	<select id="findAllVillageinfo" parameterType="int" resultType="villageInfo">
+ 		select id,name,sheng,shi,qu,xiang from villageinfo limit #{begin},6
+ 	</select>
+ 	
+ 	<select id="findNumberOfVillageInfo" resultType="java.lang.Integer">
+ 		select count(id) from villageinfo
+ 	</select>
+ 	
+ 	<update id="resetPwd" parameterType="user">
+ 		update user set pwd=#{pwd} where account=#{account}
+ 	</update>
+ 	
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTDMapper3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.varc.mapper.SuperviseMapper">
+	<insert id="addMinZhuJianDu" parameterType="minZhuJianDu">
+		insert into minzhujiandu (tianbaoniandu,gongkaishijian,caiwu,cunwu,zhengwu,gongkaixingshi,cwjdcybpy,cglrywgbt,villageinfo_id)
+		
+		values(#{tianbaoniandu},#{gongkaishijian},#{caiwu},#{cunwu},#{zhengwu},#{gongkaixingshi},#{cwjdcybpy},#{cglrywgbt},#{villageinfo_id})
+	</insert>
+	
+	
+	<select id="findVillageIdByVillageId" parameterType="java.lang.Integer" resultType="int">
+ 		select id from villageinfo where id=#{id}
+ 	</select>
+	
+	
+<!-- 
+	<select id="findLastMinZhuJianDuByVillageinfoIdAndTianBaoNianDu" parameterType="com.varc.domain.MinZhuJianDu" resultType="com.varc.domain.MinZhuJianDu">
+		select * from minzhujiandu where villageinfo_id=#{villageinfo_id} and tianbaoniandu=#{tianbaoniandu} 
+	</select>
+	 -->
+	<update id="updateMinZhuJianDu" parameterType="com.varc.domain.MinZhuJianDu">
+		UPDATE
+		minzhujiandu m
+		SET m.tianbaoniandu = #{tianbaoniandu},
+		m.gongkaishijian =
+		#{gongkaishijian},
+		m.caiwu = #{caiwu},
+		m.cunwu = #{cunwu},
+		m.zhengwu = #{zhengwu},
+		m.gongkaixingshi = #{gongkaixingshi},
+		m.cwjdcybpy =#{cwjdcybpy},
+		m.cglrywgbt =#{cglrywgbt},
+		m.villageinfo_id =#{villageinfo_id}
+		WHERE
+		id = #{id}
+	</update>
+	<select id="findMinZhuJianDuById" parameterType="int" resultType="minZhuJianDu">
+		select * from minzhujiandu where id=#{id}
+	</select>
+<!-- 	<select id="getCountrow" parameterType="com.varc.domain.extension.MinZhuJianDuExtension" resultType="long">
+		select count(*) from minzhujiandu m where m.villageinfo_id=#{demoSupervise.villageinfo_id}
+		and m.tianbaoniandu like '%${demoSupervise.tianbaoniandu}%'
+		
+	</select> -->
+	
+	<select id="findAccount" parameterType="string" resultType="string">
+		select u.account from user u where u.account=#{account}
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="findMinZhuJianDu" parameterType="int" resultMap="minZhuJianDuExtensionMap">
+		select minzhujiandu.*,name from minzhujiandu,villageinfo where
+			 minzhujiandu.villageinfo_id=villageinfo.id order by villageinfo_id, tianbaoniandu limit #{page},8
+	</select>
+	<resultMap type="minZhuJianDuExtension" id="minZhuJianDuExtensionMap">
+ 		<id column="id" property="minZhuJianDu.id"/>
+ 		<result column="tianbaoniandu" property="minZhuJianDu.tianbaoniandu"/>
+ 		<result column="gongkaishijian" property="minZhuJianDu.gongkaishijian"/>
+ 		<result column="caiwu" property="minZhuJianDu.caiwu"/>
+ 		<result column="cunwu" property="minZhuJianDu.cunwu"/>
+ 		<result column="zhengwu" property="minZhuJianDu.zhengwu"/>
+ 		<result column="gongkaixingshi" property="minZhuJianDu.gongkaixingshi"/>
+ 		<result column="cwjdcybpy" property="minZhuJianDu.cwjdcybpy"/>
+ 		<result column="cglrywgbt" property="minZhuJianDu.cglrywgbt"/>
+	</resultMap>
+	<select id="findMinZhuJianDuCount" resultType="java.lang.Integer">
+		select count(id) from minzhujiandu
+	</select>
+	<select id="findMinZhuJianDuByTimeAndId" parameterType="minZhuJianDuFindByTimeAndId" resultMap="minZhuJianDuExtensionMap">
+		select minzhujiandu.*,name from minzhujiandu,villageinfo where tianbaoniandu like '%${date}%' and
+			 villageinfo_id=#{id}
+			 AND villageinfo_id=villageinfo.id order by villageinfo_id,tianbaoniandu limit #{page},8
+	</select>
+	<select id="findMinZhuJianDuCountByTimeAndId" parameterType="minZhuJianDuFindByTimeAndId" resultType="java.lang.Integer">
+		select count(id) from minzhujiandu where tianbaoniandu like '%${date}%' and villageinfo_id=#{id}
+	</select>
+	<select id="findVillageInfoIdByAccount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select villageinfo_id  from user where account=#{account}
+	</select>
+</mapper>

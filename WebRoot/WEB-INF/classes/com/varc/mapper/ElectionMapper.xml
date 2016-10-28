@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTDMapper3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.varc.mapper.ElectionMapper">
+ 	<insert id="insertMinZhuXuanJu" parameterType="minZhuXuanJu">
+ 		insert into minzhuxuanju(tianbaoniandu,shishifangan,xuanjuri,xuanjujindu,villageinfo_id,cunweihuirenshu,shenqingzhuangtai, filename)
+ 		values(#{tianbaoniandu},#{shishifangan},#{xuanjuri},#{xuanjujindu},#{villageinfoId},#{cunweihuirenshu},#{shenqingzhuangtai},#{filename})
+ 	</insert>
+ 	<select id="findVillageinfoIdByUserAccount" parameterType="java.lang.String" resultType="java.lang.Integer">
+ 		select villageinfo_id from user where account=#{account};
+ 	</select> 
+ 	
+ 	<select id="findUserByUserAccount" parameterType="java.lang.String" resultType="com.varc.domain.User">
+ 		select * from user where account=#{account};
+ 	</select>
+ 	
+ 	<select id="findVillageIdByVillageId" parameterType="java.lang.Integer" resultType="int">
+ 		select id from villageinfo where id=#{id}
+ 	</select>
+ 	<!-- 添加候选人信息 -->
+ 	<insert id="addHouXuanRenByUserId" parameterType="com.varc.domain.HouXuanRen">
+ 		insert into houxuanren(piaoshu,user_id, minzhuxuanju_id) VALUES(#{piaoshu},#{userId}, #{minzhuxuanjuId})
+ 	</insert>
+ 	
+ 	<!-- 找到该村最近一次民主选举 -->
+ 	<select id="findMaxMinZhuXuanJuId" resultType="int">
+ 		select MAX(id) from minzhuxuanju GROUP BY villageinfo_id
+ 	</select>
+ 	
+ 	<!-- 找到每个村的最近一次民主选举信息 -->
+ 	<select id="findMinZhuXuanJu" resultMap="findMinZhuXuanJuResultMap">
+ 		select m.*, m.villageinfo_id villageInfoId, v.`NAME` name  from minzhuxuanju m, villageinfo v 
+		where m.villageinfo_id = v.id 
+		and m.id in (select MAX(id) from minzhuxuanju GROUP BY villageinfo_id)
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.MinZhuXuanJuExtension" id="findMinZhuXuanJuResultMap">
+ 		<id column="id" property="minZhuXuanJu.id"/>
+ 		<result column="tianbaoniandu" property="minZhuXuanJu.tianbaoniandu"/>
+ 		<result column="shishifangan" property="minZhuXuanJu.shishifangan"/>
+ 		<result column="xuanjuri" property="minZhuXuanJu.xuanjuri"/>
+ 		<result column="xuanjujindu" property="minZhuXuanJu.xuanjujindu"/>
+ 		<result column="villageInfoId" property="minZhuXuanJu.villageinfoId"/>
+ 		<result column="cunweihuirenshu" property="minZhuXuanJu.cunweihuirenshu"/>
+ 		<result column="shenqingzhuangtai" property="minZhuXuanJu.shenqingzhuangtai"/>
+ 		<result column="filename" property="minZhuXuanJu.filename"></result>
+ 		<result column="name" property="villageinfoName"/>
+ 	</resultMap>
+ 	
+ 	<!-- 更新民主选举的状态 -->
+ 	<update id="updateMinZhuXuanJuState" parameterType="com.varc.domain.MinZhuXuanJu">
+ 		update minzhuxuanju set shenqingzhuangtai = #{shenqingzhuangtai} where id = #{id}
+ 	</update>
+ 	<!-- 查找当前未完成的申请 -->
+ 	<!-- <select id="findNotFinishApply" resultType="com.varc.domain.MinZhuXuanJu">
+ 		select minzhuxuanju.*, minzhuxuanju.villageinfo_id villageinfoId from minzhuxuanju
+		where shenqingzhuangtai in (0,1,3)
+		GROUP BY villageinfo_id;
+ 	</select> -->
+ 	
+ 	<!-- 查看当前村庄是否有为完成的申请，未完成包括正在申请0，同意申请1，申请结束3 -->
+ 	<select id="finNotFinishApply" parameterType="int" resultType="com.varc.domain.MinZhuXuanJu">
+ 		SELECT minzhuxuanju.*, minzhuxuanju.villageinfo_id villageinfoId FROM minzhuxuanju
+		WHERE shenqingzhuangtai in (0,1,3)
+		and villageinfo_id = #{villageinfoId};
+ 	</select>
+ 	
+ 	<!-- 10.找到该村庄最近一次民主选举 -->
+ 	<select id="findLastMinZhuXuanJuByVillageinfoId" parameterType="int" resultType="com.varc.domain.MinZhuXuanJu" >
+ 		select minzhuxuanju.*, minzhuxuanju.villageinfo_id villageinfoId
+		from minzhuxuanju where minzhuxuanju.villageinfo_id = #{villageinfoId}
+		and minzhuxuanju.id = (select MAX(id) from minzhuxuanju GROUP BY villageinfo_id)
+ 	</select>
+ 	<!-- 11.通过ID找出村庄名称 -->
+ 	<select id="findVillageNameById" parameterType="int" resultType="java.lang.String">
+ 		select `NAME` from villageinfo where id = #{id}
+ 	</select>
+ 	
+ 	<!-- 12.找到某村的村委会最大届数 -->
+ 	<select id="findMaxJieShuFromCunWeiHuiByVillageinfoId" parameterType="int" resultType="int">
+ 		select MAX(jieshu) from cunweihui where villageinfo_id = #{villageinfoId}
+ 	</select>
+ 	<!-- 13.通过民主选举表ID找到对应的民主选举记录 -->
+ 	<select id="findMinZhuXuanJuById" parameterType="int" resultType="com.varc.domain.MinZhuXuanJu">
+ 		select minzhuxuanju.*, minzhuxuanju.villageinfo_id villageinfoId from minzhuxuanju where id = #{id}
+ 	</select>
+ 	
+ 	<!-- 14.通过民主选举表ID删除候选人 -->
+ 	<delete id="deleteHouXuanRenByMinZhuXuanJuId" parameterType="int">
+ 		delete from houxuanren where minzhuxuanju_id = #{id}
+ 	</delete>
+ 	
+ 	<!-- 15.根据民主选举ID找出候选人 -->
+ 	<select id="findHouXuanRensByMinZhuXuanJuId" parameterType="int" resultType="com.varc.domain.HouXuanRen">
+ 		select houxuanren.id, houxuanren.piaoshu, houxuanren.user_id userId, houxuanren.minzhuxuanju_id minzhuxuanjuId from houxuanren
+		WHERE houxuanren.minzhuxuanju_id = #{id}
+ 	</select>
+ 	
+ 	<!-- 16.根据民主选举ID找出符合条件的候选人 -->
+ 	<select id="findHouXuanRenExtensionsByMinZhuXuanJuId" parameterType="int" resultMap="findHouXuanRenExtensionsByMinZhuXuanJuIdResultMap">
+ 		SELECT houxuanren.id, houxuanren.piaoshu, houxuanren.user_id userId, houxuanren.minzhuxuanju_id minzhuxuanjuId ,`user`.`NAME` `name`
+		FROM houxuanren, user
+		WHERE houxuanren.user_id = `user`.id AND houxuanren.minzhuxuanju_id = #{id}
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.HouXuanRenExtension" id="findHouXuanRenExtensionsByMinZhuXuanJuIdResultMap">
+ 		<id column="" property=""/>
+ 		<result column="id" property="houXuanRen.id"/>
+ 		<result column="piaoshu" property="houXuanRen.piaoshu"/>
+ 		<result column="userId" property="houXuanRen.userId"/>
+ 		<result column="minzhuxuanjuId" property="houXuanRen.minzhuxuanjuId"/>
+ 		<result column="name" property="name"/>
+ 	</resultMap>
+ 	
+ 	<!-- 17.通过候选人ID和民主选举ID找出对应的候选人 -->
+ 	<select id="findHouXuanRenByuserIdAndminzhuxuanjuId" parameterType="com.varc.domain.HouXuanRen" resultType="com.varc.domain.HouXuanRen">
+ 		select houxuanren.id, houxuanren.piaoshu, houxuanren.user_id userId, houxuanren.minzhuxuanju_id minzhuxuanjuId from houxuanren
+		WHERE houxuanren.user_id = #{userId} and houxuanren.minzhuxuanju_id = #{minzhuxuanjuId}
+ 	</select>
+ 	
+ 	<!-- 18.更新候选人票数通过候选人ID和民主选举ID -->
+ 	<update id="updateHouXuanRenPiaoShuByuserIdAndminzhuxuanjuId" parameterType="com.varc.domain.HouXuanRen">
+ 		update houxuanren set piaoshu = #{piaoshu} where houxuanren.user_id = #{userId} and houxuanren.minzhuxuanju_id = #{minzhuxuanjuId}
+ 	</update>
+ 	
+ 	<!-- 19、插入投票者和被投票者信息  -->
+ 	<insert id="insertTouPiao" parameterType="com.varc.domain.HouXuanRen">
+ 		insert into toupiaobiao(user_id, b_user_id, minzhuxuanju_id) VALUES(#{userId},#{beUserId},#{minzhuxuanjuId})
+ 	</insert>
+ 	
+ 	<!-- 20.用投票者ID和民主选举的ID找到是否该投票者已经投票  -->
+ 	<select id="findTouPiaoExtensionByuserIdAndminzhuxuanjuId" parameterType="com.varc.domain.TouPiao" resultMap="findTouPiaoExtensionByuserIdAndminzhuxuanjuIdResultMap">
+ 		select toupiaobiao.id, toupiaobiao.user_id userId, toupiaobiao.b_user_id beUserId, toupiaobiao.minzhuxuanju_id minzhuxuanjuId, `user`.`NAME` beVoteUserName
+		from toupiaobiao, user
+		where toupiaobiao.user_id = #{userId} and toupiaobiao.minzhuxuanju_id = #{minzhuxuanjuId}
+		and toupiaobiao.b_user_id = `user`.id 
+ 	</select>
+ 	<resultMap type="com.varc.domain.extension.TouPiaoExtension" id="findTouPiaoExtensionByuserIdAndminzhuxuanjuIdResultMap">
+ 		<id column="id" property="touPiao.id"/>
+ 		<result column="userId" property="touPiao.userId"/>
+ 		<result column="beUserId" property="touPiao.beUserId"/>
+ 		<result column="minzhuxuanjuId" property="touPiao.minzhuxuanjuId"/>
+ 		<result column="beVoteUserName" property="beVoteUserName"/>
+ 	</resultMap>
+ 	
+ 	<!-- 21.通过villageinfoId找到该村村委会最大届数 -->
+ 	<!-- <select id="findMaxJieShuFromCunWeiHui" parameterType="int" resultType="int">
+ 		select MAX(jieshu) from cunweihui where villageinfo_id = #{id}
+ 	</select> -->
+ 	
+ 	<!-- 21.通过民主选举ID找到对应候选人，用票数的降序排列 -->
+ 	<select id="findHouXuanRenByMinZhuXuanJuIdDESCPiaoShu" parameterType="int" resultType="com.varc.domain.HouXuanRen">
+ 		select houxuanren.id, houxuanren.piaoshu, houxuanren.user_id userId, houxuanren.minzhuxuanju_id minzhuxuanjuId 
+		from houxuanren where minzhuxuanju_id = #{minzhuxuanjuId}
+		ORDER BY piaoshu DESC
+ 	</select>
+ 	
+ 	<!-- 22.根据民主选举ID删除投票表 -->
+ 	<delete id="deleteTouPiaoBiaoByMinZhuXuanJuId" parameterType="int">
+ 		delete from toupiaobiao where minzhuxuanju_id = #{minzhuxuanjuId}
+ 	</delete>
+ 	
+ 	<!-- 23.通过账号查找用户 -->
+ 	<select id="findUserByAccount" parameterType="java.lang.String" resultType="com.varc.domain.User">
+ 		select user.*, user.roll_id rollId, user.villageinfo_id villageinfoId from user where account = #{account}
+ 	</select>
+ 	
+ 	<!-- 24.往村委会表插入村委会成员 -->
+ 	<insert id="insertCunWeiHui" parameterType="com.varc.domain.CunWeiHui">
+ 		insert into cunweihui(jieshu, zhiwei_id, starttime, overtime, user_id, villageinfo_id, minzhuxuanju_id) VALUES
+		(#{jieshu}, #{zhiweiId},#{starttime},#{overtime},#{userId},#{villageinfoId}, #{minzhuxuanjuId});
+ 	</insert>
+ 	
+ 	<!-- 25.通过届数和村庄ID找到上一届村委会成员 -->
+ 	<select id="findLastCunWeiHuiMembersByjieshuAndvillageinfoId" parameterType="com.varc.domain.CunWeiHui" resultType="int">
+ 		select cunweihui.user_id userId from cunweihui where jieshu = #{jieshu} and villageinfo_id = #{villageinfoId}
+ 	</select>
+ 	
+ 	<!-- 26. 通过村庄ID找到对应该村最大的职位ID -->
+ 	<select id="findMaxzhiweiIdfromCunWeiHuiByVillageinfoId" parameterType="int" resultType="int">
+ 		select MAX(zhiwei_id) from cunweihui where villageinfo_id = #{villageinfoId}
+ 	</select>
+ 	
+ 	<!-- 27.根据userId更新userRollId -->
+ 	<update id="updateUserRollByUserId" parameterType="int">
+		update user set roll_id = #{rollId} where id = #{id}	
+ 	</update>
+ 	
+ 	
+	<update id="updateMinZhuXunaJuZhuangTaiToOneById" parameterType="int">
+		update minzhuxuanju set shenqingzhuangtai=1 where id=#{id}
+	</update> 	
+ 	
+ 	
+</mapper>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="VARC"
+  id="myeclipse.1472015772640"
+  context-root="/VARC"
+  j2ee-spec="6.0"
+  archive="VARC.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+
